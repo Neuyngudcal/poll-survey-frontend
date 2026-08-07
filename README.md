@@ -170,15 +170,18 @@ The interceptor automatically catches `204 No Content` responses (returning `tru
 ```
 **Frontend Action:** When the user selects a radio button and submits, this API is called. The frontend relies on the backend to enforce the "one vote per user" rule (via Voter Cookies or IP tracking) and redirect upon success.
 
-## Real-time SignalR (Future Implementation)
+## Real-time Updates (HTTP Polling vs SignalR)
 
-While the backend currently broadcasts `ResultsUpdated` events to the `http://localhost:8080/hubs/polls` endpoint via SignalR and RabbitMQ, the frontend currently relies on HTTP GET fetching for results.
+Currently, the frontend achieves "real-time" results in the `PollResultsView.vue` component by using **HTTP Short Polling**. It automatically fires a silent `GET` request every 5 seconds via `setInterval` to fetch the latest vote counts without disrupting the user interface.
 
-Future development roadmap for the frontend includes:
-1. Installing `@microsoft/signalr`.
-2. Initializing a `HubConnectionBuilder` in `PollResultsView.vue`.
-3. Invoking the server method `WatchPoll(code)` upon mount.
-4. Listening to `connection.on("ResultsUpdated", (data) => { ... })` to surgically update the Vue reactive state (`pollData.options`) without triggering a full HTTP request.
+While the backend is fully equipped with **SignalR** and RabbitMQ (broadcasting `ResultsUpdated` events to `http://localhost:8080/hubs/polls`), the frontend currently relies on HTTP polling for simplicity. 
+
+**Future SignalR Integration Roadmap:**
+To upgrade from HTTP polling to true WebSockets (SignalR):
+1. Install `@microsoft/signalr` (`npm install @microsoft/signalr`).
+2. Initialize a `HubConnectionBuilder` in `PollResultsView.vue`.
+3. Invoke the server method `WatchPoll(code)` upon mount.
+4. Listen to `connection.on("ResultsUpdated", (data) => { ... })` to surgically update the Vue reactive state (`pollData.options`) without triggering a full HTTP request.
 
 ## Current Boundaries
 
