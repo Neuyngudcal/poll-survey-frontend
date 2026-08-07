@@ -96,7 +96,7 @@
                 <span :class="isAutoRefresh ? 'bg-green-500' : 'bg-gray-400'" class="relative inline-flex rounded-full h-2.5 w-2.5"></span>
               </span>
               <span class="text-xs font-semibold text-gray-600">
-                {{ isAutoRefresh ? 'Live (5s)' : 'Paused' }}
+                {{ isAutoRefresh ? 'Live (WebSocket)' : 'Paused' }}
               </span>
               <button 
                 @click="toggleAutoRefresh" 
@@ -225,8 +225,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { getPollResults, viewPollByCode } from '../helps/api';
+import { getPollResults, viewPollByCode, HUB_BASE_URL } from '../helps/api';
 import { toast } from 'vue-sonner';
+import * as signalR from '@microsoft/signalr';
 
 const router = useRouter();
 const route = useRoute();
@@ -237,7 +238,7 @@ const isLoading = ref(false);
 const isLoaded = ref(false);
 const isRefreshing = ref(false);
 const isAutoRefresh = ref(true);
-let refreshTimer = null;
+let hubConnection = null;
 
 const pollData = ref({ question: '', options: [] });
 
@@ -271,7 +272,7 @@ onMounted(() => {
   }
 });
 
-onUnmounted(() => stopAutoRefresh());
+onUnmounted(() => stopSignalR());
 
 const fetchResults = async () => {
   const code = inputPollCode.value.trim().replace(/^#/, '');
@@ -285,7 +286,7 @@ const fetchResults = async () => {
     await loadResultsData(code);
     currentPollCode.value = code;
     isLoaded.value = true;
-    startAutoRefresh();
+    startSignalR(code);
     toast.success(`Results for #${code} loaded successfully!`);
   } catch (error) {
     toast.error('No poll results found with this code. Please check again.');
@@ -323,26 +324,43 @@ const silentRefresh = async () => {
   }
 };
 
-const startAutoRefresh = () => {
-  stopAutoRefresh();
-  if (isAutoRefresh.value) refreshTimer = setInterval(silentRefresh, 5000);
+const startSignalR = async (code) => {
+  stopSignalR();
+  
+  hubConnection = new signalR.HubConnectionBuilder()
+    .withUrl(HUB_BASE_URL)
+    .withAutomaticReconnect()
+    .build();
+
+  hubConnection.on("ResultsUpdated", () => {
+    if (isAutoRefresh.value) {
+      silentRefresh();
+    }
+  });
+
+  try {
+    await hubConnection.start();
+    await hubConnection.invoke("WatchPoll", code);
+  } catch (err) {
+    console.error("SignalR Connection Error: ", err);
+  }
 };
 
-const stopAutoRefresh = () => {
-  if (refreshTimer) {
-    clearInterval(refreshTimer);
-    refreshTimer = null;
+const stopSignalR = async () => {
+  if (hubConnection) {
+    try {
+      await hubConnection.stop();
+    } catch (err) {}
+    hubConnection = null;
   }
 };
 
 const toggleAutoRefresh = () => {
   isAutoRefresh.value = !isAutoRefresh.value;
   if (isAutoRefresh.value) {
-    startAutoRefresh();
-    toast.success('Real-time auto-refresh resumed (5s)');
+    toast.success('Real-time WebSocket updates resumed');
   } else {
-    stopAutoRefresh();
-    toast.info('Auto-refresh paused.');
+    toast.info('Real-time updates paused.');
   }
 };
 

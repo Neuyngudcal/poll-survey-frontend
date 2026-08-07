@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://poorpollsurvey.up.railway.app/polls';
-
+export const API_BASE_URL = 'https://poorpollsurvey.up.railway.app/polls';
+export const HUB_BASE_URL = 'https://poorpollsurvey.up.railway.app/hubs/polls';
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
     headers: {
