@@ -242,11 +242,28 @@ let hubConnection = null;
 
 const pollData = ref({ question: '', options: [] });
 
-const totalVotes = computed(() => pollData.value.options.reduce((sum, opt) => sum + (opt.votes || 0), 0));
+// Tính tổng số phiếu bầu (Viết tường minh thay vì dùng hàm reduce phức tạp)
+const totalVotes = computed(() => {
+  let sum = 0;
+  for (let i = 0; i < pollData.value.options.length; i++) {
+    sum += (pollData.value.options[i].votes || 0);
+  }
+  return sum;
+});
 
+// Tìm ra câu trả lời có nhiều phiếu nhất (Viết tường minh thay vì dùng hàm sort)
 const leadingOption = computed(() => {
-  if (!pollData.value.options.length || totalVotes.value === 0) return null;
-  return [...pollData.value.options].sort((a, b) => b.votes - a.votes)[0];
+  if (pollData.value.options.length === 0 || totalVotes.value === 0) {
+    return null;
+  }
+  
+  let winner = pollData.value.options[0];
+  for (let i = 1; i < pollData.value.options.length; i++) {
+    if (pollData.value.options[i].votes > winner.votes) {
+      winner = pollData.value.options[i];
+    }
+  }
+  return winner;
 });
 
 const processedOptions = computed(() => {

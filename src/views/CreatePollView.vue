@@ -171,7 +171,15 @@ const handleCreatePoll = async () => {
   toast.dismiss();
 
   const questionText = pollForm.value.question.trim();
-  const validOptions = pollForm.value.options.map(opt => opt.trim()).filter(Boolean);
+  // Lọc ra các câu trả lời hợp lệ (bỏ qua khoảng trắng và ô trống)
+  // Viết tường minh thay vì dùng hàm filter(Boolean) khó hiểu
+  const validOptions = [];
+  for (let i = 0; i < pollForm.value.options.length; i++) {
+    const opt = pollForm.value.options[i].trim();
+    if (opt !== '') {
+      validOptions.push(opt);
+    }
+  }
 
   if (!questionText) return toast.error('Please enter a question for your poll!');
   if (validOptions.length < 2) return toast.error('Please provide at least 2 valid options (cannot be empty)!');

@@ -224,9 +224,29 @@ const fetchPollData = async () => {
     currentPollCode.value = code;
     pollForm.value.question = data.question;
     
-    const options = (data.options || []).map(opt => typeof opt === 'string' ? opt : (opt?.text || ''));
-    pollForm.value.options = [...options, '', ''].slice(0, Math.max(2, options.length));
+    // Code cũ: dùng các hàm nâng cao (map, spread, slice) hơi khó hiểu
+    // Code mới: Viết tường minh bằng vòng lặp for dễ hiểu cho người mới học
+    const apiOptions = data.options || [];
+    const mappedOptions = [];
+    
+    // 1. Duyệt qua mảng API trả về và lấy text
+    for (let i = 0; i < apiOptions.length; i++) {
+      let opt = apiOptions[i];
+      if (typeof opt === 'string') {
+        mappedOptions.push(opt);
+      } else {
+        mappedOptions.push(opt.text || '');
+      }
+    }
 
+    // 2. Đảm bảo UI luôn hiển thị ít nhất 2 ô nhập liệu
+    if (mappedOptions.length === 0) {
+      mappedOptions.push('', ''); // Thêm 2 ô trống
+    } else if (mappedOptions.length === 1) {
+      mappedOptions.push('');     // Thêm 1 ô trống nữa
+    }
+
+    pollForm.value.options = mappedOptions;
     isLoaded.value = true;
     toast.success(`Poll #${code} loaded successfully!`);
   } catch (error) {
