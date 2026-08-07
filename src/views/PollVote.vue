@@ -164,10 +164,16 @@ const fetchPollDetails = async () => {
     if (!data?.question) return toast.error('Poll not found.');
 
     pollData.value.question = data.question;
-    pollData.value.options = (data.options || []).map((opt, idx) => ({
-      id: opt.id ?? idx,
-      text: opt.text ?? opt
-    }));
+    const mappedOptions = [];
+    const apiOptions = data.options || [];
+    for (let i = 0; i < apiOptions.length; i++) {
+      const opt = apiOptions[i];
+      mappedOptions.push({
+        id: opt.id !== undefined && opt.id !== null ? opt.id : i,
+        text: opt.text !== undefined && opt.text !== null ? opt.text : opt
+      });
+    }
+    pollData.value.options = mappedOptions;
 
     isLoaded.value = true;
   } catch (error) {

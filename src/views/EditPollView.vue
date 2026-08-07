@@ -273,10 +273,22 @@ const removeOption = (index) => {
 const handleUpdatePoll = async () => {
   toast.dismiss();
   const question = pollForm.value.question.trim();
-  const options = pollForm.value.options.map(opt => opt.trim());
+  const options = [];
+  for (let i = 0; i < pollForm.value.options.length; i++) {
+    options.push(pollForm.value.options[i].trim());
+  }
 
   if (!question) return toast.error('Please enter a question for your poll!');
-  if (options.some(opt => !opt)) return toast.error('Options cannot be empty!');
+  
+  // Kiểm tra xem có option nào bị trống không
+  let hasEmptyOption = false;
+  for (let i = 0; i < options.length; i++) {
+    if (options[i] === '') {
+      hasEmptyOption = true;
+      break;
+    }
+  }
+  if (hasEmptyOption) return toast.error('Options cannot be empty!');
 
   const creatorToken = localStorage.getItem(`poll_token_${currentPollCode.value}`);
   if (!creatorToken) return toast.error('You do not have permission to edit this poll.');

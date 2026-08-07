@@ -269,16 +269,20 @@ const leadingOption = computed(() => {
 const processedOptions = computed(() => {
   const total = totalVotes.value;
   const maxVotes = leadingOption.value?.votes || 0;
-
-  return pollData.value.options.map(opt => {
+  
+  const results = [];
+  for (let i = 0; i < pollData.value.options.length; i++) {
+    const opt = pollData.value.options[i];
     const votes = opt.votes || 0;
-    return {
-      ...opt,
-      votes,
+    results.push({
+      id: opt.id,
+      text: opt.text,
+      votes: votes,
       percentage: total > 0 ? Math.round((votes / total) * 100) : 0,
       isWinner: total > 0 && votes === maxVotes && votes > 0
-    };
-  });
+    });
+  }
+  return results;
 });
 
 onMounted(() => {
@@ -321,13 +325,19 @@ const loadResultsData = async (code) => {
   }
 
   const rawOpts = data.options || data.results || [];
+  const mappedOptions = [];
+  for (let i = 0; i < rawOpts.length; i++) {
+    const opt = rawOpts[i];
+    mappedOptions.push({
+      id: opt.id !== undefined && opt.id !== null ? opt.id : i,
+      text: opt.text !== undefined && opt.text !== null ? opt.text : opt,
+      votes: parseInt(opt.votes !== undefined && opt.votes !== null ? opt.votes : 0, 10)
+    });
+  }
+  
   pollData.value = {
     question: data.question || `Poll #${code}`,
-    options: rawOpts.map((opt, idx) => ({
-      id: opt.id ?? idx,
-      text: opt.text ?? opt,
-      votes: parseInt(opt.votes ?? 0, 10)
-    }))
+    options: mappedOptions
   };
 };
 
