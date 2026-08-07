@@ -1,0 +1,264 @@
+@import "tailwindcss";
+
+:root {
+  --font-sans: 'Roboto', sans-serif;
+  --font-anton: 'Anton', sans-serif;
+}
+
+html {
+  font-size: 16px;
+}
+
+body { 
+  background-color: #FFFFFF; 
+  color: #000000; 
+  font-family: 'Roboto', sans-serif; 
+  -webkit-font-smoothing: antialiased; 
+}
+
+h1, h2, h3, h4, h5, h6, .font-anton {
+  font-family: 'Anton', sans-serif;
+  font-weight: normal; 
+  letter-spacing: 0.03em;
+}
+
+.font-anton, .uppercase {
+  text-transform: uppercase;
+}
+
+p, span, div, a, input, button, textarea {
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Base Pill Button */
+.btn  {
+  background-color: #000000;
+  color: #FFFFFF;
+  border-radius: 9999px;
+  padding: 0.75rem 2rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-white {
+  background-color: #FFFFFF;
+  color: #000000;
+  border-radius: 9999px;
+  padding: 0.75rem 2rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-white:hover {
+  transform: translateY(-2px);
+}
+.btn:hover {
+  transform: translateY(-2px);
+}
+.btn-outline {
+  background-color: transparent;
+  color: #000000;
+  border: 1px solid #000000;
+}
+.btn-outline:hover {
+  background-color: #f3f4f6; /* gray-100 */
+}
+
+/* Custom Login Classes (Pure CSS for maximum stability) */
+.btn-social {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 9999px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #000000;
+  background-color: #ffffff;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+.btn-social:hover {
+  background-color: #f3f4f6;
+}
+.btn-social:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #000000;
+}
+
+.input-field {
+  width: 100%;
+  padding: 24px 20px 8px 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 9999px;
+  font-size: 16px;
+  color: #000000;
+  background-color: transparent;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.input-field:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 0 1px #000000;
+}
+
+.input-label {
+  position: absolute;
+  left: 20px;
+  top: 16px;
+  color: #6b7280;
+  font-size: 15px;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+.input-field:focus + .input-label,
+.input-field:not(:placeholder-shown) + .input-label {
+  font-size: 11px;
+  top: 4px;
+}
+
+::selection { 
+  background-color: black; 
+  color: white; 
+}
+
+/* Marquee Scrolling Animation */
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-content {
+  display: flex;
+  width: max-content;
+  animation: scroll-left 10s linear infinite;
+}
+
+/* --- PHẦN HỌA TIẾT TRANG TRÍ GÓC DƯỚI TRÁI CHUẨN XÁC --- */
+.decorations {
+    position: absolute;
+    bottom: -150px; /* Đẩy sâu xuống dưới để cắt nửa hình tròn */
+    left: -150px;   /* Đẩy sang trái để cắt nửa hình tròn */
+    width: 500px;
+    height: 500px;
+    pointer-events: none;
+}
+
+/* 1. Hình tròn xanh lớn nằm dưới cùng */
+.circle-green {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 380px;
+    height: 380px;
+    background-color: #DCDCDC; /* changed to grayscale */
+    border-radius: 50%;
+    z-index: 1;
+}
+
+/* 2. Đường nét đứt hình vòng cung nằm đè lên hình xanh */
+.dashed-line {
+    position: absolute;
+    bottom: 20px;
+    left: 60px;
+    width: 480px;
+    height: 480px;
+    border: 3px dashed #dadce0; /* Độ dày nét đứt rõ hơn */
+    border-radius: 50%;
+    z-index: 2; /* Nằm trên hình xanh */
+}
+
+/* 3. Hình tròn vàng nhỏ nằm trên cùng đè lên đường nét đứt */
+.circle-yellow {
+    position: absolute;
+    bottom: 300px;
+    left: 500px;
+    width: 70px;
+    height: 70px;
+    background-color: #1C1C1C; /* changed to grayscale */
+    border-radius: 50%;
+    z-index: 3; /* Nằm trên cùng để đè lên nét đứt */
+}
+        
+/* Custom Helpers for Home Redesign */
+.text-stroke {
+  -webkit-text-stroke: 2px #000;
+  color: transparent;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+}
+
+.feature-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #e5e7eb;
+  background-color: white;
+}
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+.text-accent {
+  color: #1C1C1C;
+}
+.bg-accent {
+  background-color: #1C1C1C;
+}
+.bg-accent:hover {
+  background-color: #000000;
+}
+
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+@media (min-width: 768px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-[#FFFFFF] text-[#000000] hover:bg-[#DCDCDC] transition-all duration-300 border border-transparent flex items-center justify-center hover:-translate-y-1 shadow-md hover:shadow-xl;
+  }
+  .btn-fab {
+    @apply w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all focus:outline-none hover:scale-105;
+  }
+  .btn-icon {
+    @apply p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-[#1C1C1C] flex items-center justify-center focus:outline-none;
+  }
+  .question-card {
+    @apply bg-[#FFFFFF] rounded-xl shadow-sm border border-gray-200 relative transition-all duration-200 cursor-pointer;
+  }
+  .input-ghost {
+    @apply border-b border-transparent outline-none transition-colors bg-transparent;
+  }
+  .input-standard {
+    @apply flex-1 bg-gray-50 p-4 border-b-2 border-gray-300 focus:border-[#1C1C1C] focus:bg-gray-100 outline-none transition-all rounded-t-md;
+  }
+}
+
+[v-cloak] { display: none; }
