@@ -1,103 +1,93 @@
-# Pollco - Instant Polling Platform (Frontend)
+# Poll & Survey Builder — Frontend
 
-![Vue.js](https://img.shields.io/badge/vue-%2335495e.svg?style=for-the-badge&logo=vuedotjs&logoColor=%234FC08D)
-![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+Vue 3 + Vite frontend for the AMD201 Poll & Survey Builder. It uses Tailwind CSS v4, Vue Router, Axios, and Vue Sonner. Account authentication remains future development; poll management is protected by a creator token that is securely saved in the browser's local storage upon poll creation.
 
-Pollco is a modern, frictionless polling application built with Vue 3 and Vite. It allows users to create, share, and vote on polls instantly without registering, entering a password, or verifying an email.
+## Architecture
 
-## 🚀 Features
+All API requests are routed through the backend API Gateway. By default, the application connects to the production backend hosted at `https://poorpollsurvey.up.railway.app/polls`.
 
-- **Zero Friction:** No sign-ups required. Open the app, type your question, and publish instantly.
-- **Creator Admin Panel:** Secure creator tokens are automatically generated and stored locally, allowing the poll creator to edit options, close voting, or delete the poll at any time.
-- **Shareable Links:** Easily copy and share poll links with your community.
-- **Modern UI/UX:** Built with Tailwind CSS v4 for a highly responsive, beautiful, and interactive user experience.
-- **Real-time Notifications:** Toast notifications powered by `vue-sonner` for seamless user feedback.
+### Component Responsibilities
 
-## 🛠️ Technology Stack
+| View / Component | Responsibility |
+| :--- | :--- |
+| **HomeView** | Landing page, feature highlights, and navigation to poll creation. |
+| **CreatePollView** | Poll submission form. Sends questions and options to the API. |
+| **EditPollView** | Admin panel. Loads poll data and uses the local `creatorToken` to authorize PUT, DELETE, and PATCH (close) requests. |
+| **PollVote** | Voting interface. Fetches poll details and submits the user's selected option. |
+| **PollResultsView** | Real-time result visualization. Displays aggregated vote data for a specific poll. |
+| **api.js** (`helps/`) | Centralized Axios instance. Handles request formatting, base URL configuration, and API error interception. |
 
-- **Framework:** Vue 3 (Composition API)
-- **Build Tool:** Vite
-- **Styling:** Tailwind CSS v4
-- **Routing:** Vue Router
-- **HTTP Client:** Axios
-- **Deployment:** Docker & Nginx (Multi-stage build)
+### State & Authorization Ownership
 
-## 📂 Project Structure
+- **Creator Tokens:** When a poll is created, the backend returns a unique `creatorToken`. The frontend immediately stores this in `localStorage` under the key `poll_token_{code}`.
+- **Admin Panel Access:** The `EditPollView` requires this local token to prove ownership. If the user clears their browser data or switches devices, they lose admin access to the poll.
+- **Voter Tracking:** The frontend relies on the backend to enforce the "one vote per user" rule (typically via HttpOnly cookies and IP/Browser hashing). The frontend's Axios instance must be configured to pass credentials if cookies are used.
 
-```text
-src/
-├── assets/        # Static assets (images, global CSS)
-├── components/    # Reusable UI components (Buttons, Inputs, Modals, Sections)
-│   ├── detail/
-│   ├── edit/
-│   ├── home/
-│   ├── qa/
-│   ├── ui/
-│   └── vote/
-├── helps/         # Helper functions and API configurations (api.js)
-├── router/        # Vue Router configuration
-├── views/         # Page-level components (Home, Create, Edit, Vote, Results, etc.)
-├── App.vue        # Root component
-└── main.js        # Application entry point
+## Configure & Run
+
+**Requirements:**
+- Node.js 18+ and npm
+- Backend API running locally (Port 8080) or a hosted instance.
+
+**1. Clone and Install:**
+From the frontend directory:
+```bash
+npm install
 ```
 
-## ⚙️ Getting Started (Local Development)
+**2. Configure API Endpoint:**
+Open `src/helps/api.js` and ensure the `API_BASE_URL` points to your active backend gateway.
+```javascript
+// For local backend:
+// const API_BASE_URL = 'http://localhost:8080/polls';
 
-### Prerequisites
+// For production backend:
+const API_BASE_URL = 'https://poorpollsurvey.up.railway.app/polls';
+```
 
-- Node.js (v18 or higher recommended)
-- npm or yarn
+**3. Run Development Server:**
+```bash
+npm run dev
+```
+The application will be available at `http://localhost:5173`.
 
-### Installation
+## Docker & Production Deployment
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Neuyngudcal/poll-survey-frontend.git
-   cd poll-survey-frontend
-   ```
+The local `node_modules` are not used in production. Docker runs a multi-stage build that compiles the Vite application into static files and serves them using an Alpine Nginx container.
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+**Run with Docker:**
+```bash
+docker build -t pollco-frontend .
+docker run -d -p 8080:80 pollco-frontend
+```
+The application will be accessible at `http://localhost:8080`.
 
-3. **Configure API Endpoint:**
-   By default, the API base URL is configured in `src/helps/api.js`. Ensure it points to your running backend instance:
-   ```javascript
-   const API_BASE_URL = 'https://poorpollsurvey.up.railway.app/polls'; // Change for local backend if needed
-   ```
+**Nginx Configuration:**
+The included `nginx.conf` is optimized for Vue Router's History mode. It falls back to `index.html` for any unknown routes to prevent 404 errors when users refresh the page on routes like `/poll/7fGh2Ab`.
 
-4. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-   The application will be available at `http://localhost:5173`.
+## API Integration Mapping
 
-## 🐳 Docker Deployment
+The frontend consumes the backend CRUD API via `src/helps/api.js`.
 
-This project includes a multi-stage `Dockerfile` optimized for production using **Nginx**.
+| Operation | Frontend Method | Target API Route | Authorization |
+| :--- | :--- | :--- | :--- |
+| **Create** | `addNewPoll(data)` | `POST /` | Public |
+| **Read** | `viewPollByCode(code)` | `GET /{code}` | Public |
+| **Update** | `editPollByCode(code, data)` | `PUT /{code}` | Creator token (in body) |
+| **Delete** | `deletePollByCode(code, token)` | `DELETE /{code}` | Creator token (in `X-Creator-Token` header) |
+| **Close** | `closePoll(code, token)` | `PATCH /{code}/close` | Creator token (in body) |
+| **Vote** | `votePoll(code, optionId)` | `POST /{code}/vote` | Public |
+| **Results** | `getPollResults(code)` | `GET /{code}/results` | Public |
 
-1. **Build the Docker Image:**
-   ```bash
-   docker build -t pollco-frontend .
-   ```
+## Real-time Updates (Future integration)
 
-2. **Run the Docker Container:**
-   ```bash
-   docker run -d -p 8080:80 pollco-frontend
-   ```
-   The application will be accessible at `http://localhost:8080`.
+Currently, results are fetched via HTTP GET. To fully utilize the backend's Realtime Service (`8083`) and RabbitMQ setup:
+- The frontend will need to integrate the `@microsoft/signalr` package.
+- Connect to the gateway hub URL: `http://localhost:8080/hubs/polls`.
+- Invoke the `WatchPoll(code)` method and listen for `ResultsUpdated` events to update the DOM reactively without polling.
 
-*(Note: If you are deploying to Render.com, simply connect your GitHub repository and Render will automatically detect the Dockerfile and deploy the application for you.)*
+## Current Boundaries
 
-## 📜 Available Scripts
-
-- `npm run dev`: Starts the Vite development server.
-- `npm run build`: Compiles and minifies the application for production.
-- `npm run preview`: Locally previews the production build.
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/Neuyngudcal/poll-survey-frontend/issues).
+- The creator token acts as capability-based authorization. Since there is no user login system, `localStorage` is the sole source of truth for poll ownership.
+- If a user loses their `localStorage` data, the poll becomes orphaned and can no longer be edited or closed.
+- The frontend assumes the backend will handle duplicate voting prevention gracefully and return appropriate HTTP status codes (e.g., `409 Conflict`), which the Axios interceptor catches to display a UI Toast message.
