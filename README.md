@@ -1,190 +1,223 @@
-# Poll & Survey Builder — Frontend
+<div align="center">
 
-Vue 3 + Vite frontend for the AMD201 Poll & Survey Builder. It uses Tailwind CSS v4 for utility-first styling, Vue Router for Single Page Application (SPA) navigation, Axios for API communication, and Vue Sonner for toast notifications.
+# 📊 Poll & Survey Builder 
 
-Account authentication remains future development; poll management is protected by a creator token returned by the backend when a poll is created. This token is securely saved in the browser's local storage.
+### A Modern Real-Time Voting & Polling Single Page Application
 
-## Architecture
+[![Vue.js](https://img.shields.io/badge/Vue.js-3.0-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)](https://vuejs.org/)
+[![Vite](https://img.shields.io/badge/Vite-8.1-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Docker](https://img.shields.io/badge/Docker-Alpine_Nginx-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
-All browser requests from this frontend application are routed through the backend API Gateway (typically `http://localhost:8080` in local development). The frontend service itself is a static bundle served by Nginx in production, or via Vite's development server.
+[API Integration](#-api-integration-mapping) • [Architecture](#️-architecture) • [Docker Setup](#-docker-deployment)
 
-### Component Responsibility
+</div>
 
-| Directory / Component | Responsibility |
-| :--- | :--- |
-| **`views/`** | Page-level components acting as route destinations. |
-| ↳ `HomeView.vue` | Landing page, feature highlights, and navigation to poll creation. |
-| ↳ `CreatePollView.vue` | Poll submission form. Sends questions and options to the API. |
-| ↳ `EditPollView.vue` | Admin panel. Loads poll data and uses the local `creatorToken` to authorize PUT, DELETE, and PATCH (close) requests. |
-| ↳ `PollVote.vue` | Voting interface. Fetches poll details and submits the user's selected option. |
-| ↳ `PollResultsView.vue` | Result visualization. Displays aggregated vote data dynamically. |
-| **`components/`** | Reusable UI building blocks, divided by domain (vote, ui, qa, home, edit, detail). |
-| ↳ `BaseInput.vue` & `BaseButton.vue` | Standardized, themed UI elements ensuring design consistency. |
-| **`helps/api.js`** | Centralized Axios instance. Handles request formatting, base URL configuration, and global API error interception. |
-| **`router/index.js`** | Vue Router configuration mapping URLs to the respective View components, utilizing WebHistory for clean URLs without hashes. |
+---
 
-## Configure Environment
+## 📋 Table of Contents
 
-Unlike the backend which relies heavily on `.env` files for Neon database connections, the frontend primarily needs to know the location of the API Gateway.
+- [✨ Features](#-features)
+- [🏗️ Architecture](#️-architecture)
+- [🚀 Tech Stack](#-tech-stack)
+- [⚡ Quick Start](#-quick-start)
+- [🐳 Docker Deployment](#-docker-deployment)
+- [📡 API Integration Mapping](#-api-integration-mapping)
+- [🔐 State & Authorization](#-state--authorization)
+- [🌐 Real-time Updates](#-real-time-updates-signalr)
 
-Currently, the API endpoint is statically configured in `src/helps/api.js`.
+---
 
-Open `src/helps/api.js` and update the `API_BASE_URL`:
+## ✨ Features
 
-```javascript
-// Local Development Gateway
-// const API_BASE_URL = 'http://localhost:8080/polls';
+<div align="center">
 
-// Production / Cloud Gateway
-const API_BASE_URL = 'https://poorpollsurvey.up.railway.app/polls';
+| Feature | Description |
+|---------|-------------|
+| ⚡ **Instant Setup** | Create polls instantly with zero registration |
+| 📊 **Real-Time Analytics** | Watch votes come in live via SignalR WebSockets |
+| 🛡️ **Admin Panel** | Manage, edit, and close polls using secure creator tokens |
+| 🔗 **Easy Sharing** | One-click copy for shareable voting links |
+| 🎨 **Modern UI/UX** | Smooth animations, toast notifications, and responsive design |
+| 🐳 **Containerized** | Production-ready multi-stage Docker setup with Nginx |
+
+</div>
+
+---
+
+## 🏗️ Architecture
+
+### Frontend Component Breakdown
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    🌐 Vue 3 + Vite SPA                       │
+└───────────────┬─────────────────────────┬───────────────────┘
+                │                         │
+        ┌───────▼────────┐        ┌───────▼────────┐
+        │  🏠 Views      │        │  🧩 Components │
+        │  (Page Level)  │        │  (Reusables)   │
+        └───────┬────────┘        └───────┬────────┘
+                │                         │
+      ┌─────────┼─────────┐     ┌─────────┼──────────┐
+      │ HomeView          │     │ BaseInput        │
+      │ CreatePollView    │     │ BaseButton       │
+      │ EditPollView      │     │ PollVoteHero     │
+      │ PollVote          │     │ EditPollHero     │
+      │ PollResultsView   │     │ ...              │
+      └───────────────────┘     └──────────────────┘
 ```
 
-When building for production, ensure this points to your deployed API Gateway.
+**Component Responsibilities:**
+- **`HomeView`**: Landing page, feature highlights, and navigation.
+- **`CreatePollView`**: Form to submit new poll questions and options.
+- **`EditPollView`**: Admin panel for poll creators (Edit/Close/Delete).
+- **`PollVote`**: Voting interface for standard users.
+- **`PollResultsView`**: Result visualization updating in real-time.
+- **`helps/api.js`**: Centralized Axios instance & SignalR config.
 
-## Run Locally
+---
 
-**Requirements:**
+## 🚀 Tech Stack
+
+### Frontend & Build Tools
+
+<div align="center">
+
+| Technology | Purpose |
+|------------|---------|
+| ![Vue.js](https://img.shields.io/badge/Vue.js-3.0-4FC08D?style=flat-square&logo=vue.js&logoColor=white) | Frontend Reactive Framework |
+| ![Vite](https://img.shields.io/badge/Vite-8.1-646CFF?style=flat-square&logo=vite&logoColor=white) | Next-Generation Build Tool |
+| ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) | Utility-first CSS framework |
+| ![Axios](https://img.shields.io/badge/Axios-HTTP-5A29E4?style=flat-square) | HTTP Client for API communication |
+| ![SignalR](https://img.shields.io/badge/SignalR-WebSockets-008AD7?style=flat-square) | Real-time WebSocket integration |
+
+</div>
+
+### Infrastructure
+
+<div align="center">
+
+| Technology | Purpose |
+|------------|---------|
+| ![Docker](https://img.shields.io/badge/Docker-Latest-2496ED?style=flat-square&logo=docker&logoColor=white) | Containerization |
+| ![Nginx](https://img.shields.io/badge/Nginx-Alpine-009639?style=flat-square&logo=nginx&logoColor=white) | Production Static File Server |
+
+</div>
+
+---
+
+## ⚡ Quick Start
+
+### Prerequisites
 - Node.js 18 or newer
 - npm (Node Package Manager)
 
-From the `frontend` solution directory, install dependencies:
+### Local Development
 
 ```bash
+# Clone the repository
+git clone https://github.com/Neuyngudcal/poll-survey-frontend.git
+cd poll-survey-frontend
+
+# Install dependencies
 npm install
-```
 
-Start the Vite development server with Hot Module Replacement (HMR):
-
-```bash
+# Start the Vite development server
 npm run dev
+
+# Access the application
+# Frontend: http://localhost:5173
 ```
 
-The terminal will output the local network addresses:
-```text
-  VITE v8.1.0  ready in 300 ms
-
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: use --host to expose
-  ➜  press h to show help
+### Environment Configuration
+The backend API Gateway endpoints are currently configured in `src/helps/api.js`:
+```javascript
+export const API_BASE_URL = 'https://poorpollsurvey.up.railway.app/polls';
+export const HUB_BASE_URL = 'https://poorpollsurvey.up.railway.app/hubs/polls';
 ```
 
-To build for production locally and test the compiled assets:
+---
+
+## 🐳 Docker Deployment
+
+### Multi-Stage Build
+
+The application uses an optimized two-stage Docker build to ensure the production image is extremely lightweight.
+
+```dockerfile
+# Stage 1: Build (Node.js)
+FROM node:20-alpine AS build-stage
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Stage 2: Production (Nginx)
+FROM nginx:stable-alpine AS production-stage
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+### Run with Docker
+
 ```bash
-npm run build
-npm run preview
-```
-
-## Docker & Production Deployment
-
-The application does not run a Node server in production. Docker runs a multi-stage build:
-1. **Build Stage:** Uses `node:20-alpine` to install dependencies and run `npm run build`, producing a static `dist` folder.
-2. **Production Stage:** Uses `nginx:alpine` to serve the static files, running extremely fast with minimal memory overhead.
-
-**Build and Run the Docker Container:**
-
-```bash
+# Build the image
 docker build -t pollco-frontend .
+
+# Run the container on port 8080
 docker run -d -p 8080:80 pollco-frontend
-docker ps
 ```
 
-### Nginx Configuration
+*(Note: The included `nginx.conf` ensures Vue Router's History mode functions correctly by falling back to `index.html` on deep links).*
 
-Because this is a Single Page Application (SPA), the Nginx server must route all unknown requests to `index.html`. This is handled by the included `nginx.conf` file:
+---
 
-```nginx
-server {
-    listen 80;
-    server_name localhost;
-    location / {
-        root /usr/share/nginx/html;
-        index index.html;
-        # Fallback to index.html for Vue Router History mode
-        try_files $uri $uri/ /index.html;
-    }
-}
-```
-Without this fallback, navigating directly to a poll link like `http://localhost:8080/poll/7fGh2Ab` and refreshing the page would result in a 404 Not Found from Nginx.
+## 📡 API Integration Mapping
 
-## API Integration Mapping & Axios Interceptors
+The frontend communicates with the .NET Backend API Gateway via the centralized `apiClient`. 
 
-The frontend communicates exclusively with the backend via the centralized `apiClient` in `src/helps/api.js`.
+| Operation | Target API Route | HTTP Method | Frontend Action |
+|-----------|------------------|-------------|-----------------|
+| **Create Poll** | `/` | `POST` | Stores returned `creatorToken` in `localStorage` |
+| **Get Poll** | `/{code}` | `GET` | Renders the Voting interface (`PollVote.vue`) |
+| **Update Poll** | `/{code}` | `PUT` | Sends updated question/options + `creatorToken` |
+| **Delete Poll** | `/{code}` | `DELETE` | Passes token in `X-Creator-Token` header |
+| **Close Poll** | `/{code}/close` | `PATCH` | Locks poll from further voting |
+| **Submit Vote** | `/{code}/vote` | `POST` | Submits selected `optionId` |
+| **Get Results** | `/{code}/results` | `GET` | Fetches initial vote aggregation |
 
-The interceptor automatically catches `204 No Content` responses (returning `true`) and extracts `response.data` for `200 OK` responses, simplifying component logic.
+---
 
-### 1. Create a Poll
-**Method:** `addNewPoll(pollData)`
-**Target:** `POST /` (API Gateway)
-**Payload:**
-```json
-{
-  "question": "Which option do you prefer?",
-  "options": ["Option A", "Option B"]
-}
-```
-**Frontend Action:** Upon a `201 Created` response, the frontend extracts `response.creatorToken` and saves it strictly to the browser's `localStorage` as `poll_token_{code}`. It then redirects the user to the poll detail view.
+## 🔐 State & Authorization
 
-### 2. Read a Poll (Voting View)
-**Method:** `viewPollByCode(code)`
-**Target:** `GET /{code}` (API Gateway)
-**Frontend Action:** Populates the `PollVote.vue` component. The frontend checks `localStorage` to see if a token exists for this code. If it does, an "Admin Panel" button is revealed to the user.
+Because there is currently no global user login system, authorization is handled via **Capability-Based Tokens**.
 
-### 3. Update a Poll (Creator Only)
-**Method:** `editPollByCode(code, pollData)`
-**Target:** `PUT /{code}` (API Gateway)
-**Payload:**
-```json
-{
-  "creatorToken": "private-token-retrieved-from-localStorage",
-  "question": "Updated question?",
-  "options": ["Updated Option A", "Updated Option B"]
-}
-```
-**Frontend Action:** Executed in `EditPollView.vue`. If the token is missing from `localStorage`, the frontend blocks the request entirely. If the backend returns `403 Forbidden` (invalid token) or `409 Conflict` (poll closed), a toast notification displays the error.
+1. **Token Generation:** When a poll is created, the backend returns a `creatorToken`.
+2. **Local Storage:** The frontend saves this token as `poll_token_{code}`.
+3. **Admin Access:** The `EditPollView.vue` checks `localStorage` for this token to prove ownership.
+4. **Warning:** If a user clears their browser cache or switches devices, the poll becomes "orphaned" and they lose admin access.
 
-### 4. Delete a Poll (Creator Only)
-**Method:** `deletePollByCode(code, creatorToken)`
-**Target:** `DELETE /{code}` (API Gateway)
-**Headers:** `X-Creator-Token: private-token-retrieved-from-localStorage`
-**Frontend Action:** Triggers a permanent soft-delete. The user is redirected to the home page upon success.
+---
 
-### 5. Close a Poll (Creator Only)
-**Method:** `closePoll(code, creatorToken)`
-**Target:** `PATCH /{code}/close` (API Gateway)
-**Payload:**
-```json
-{
-  "creatorToken": "private-token-retrieved-from-localStorage"
-}
-```
-**Frontend Action:** Marks the poll as closed. The UI updates to block further voting attempts.
+## 🌐 Real-time Updates (SignalR)
 
-### 6. Submit a Vote
-**Method:** `votePoll(code, optionId)`
-**Target:** `POST /{code}/vote` (API Gateway)
-**Payload:**
-```json
-{
-  "optionId": "69fd6ef0-f5c9-4831-94fb-d4307fb6289c"
-}
-```
-**Frontend Action:** When the user selects a radio button and submits, this API is called. The frontend relies on the backend to enforce the "one vote per user" rule (via Voter Cookies or IP tracking) and redirect upon success.
+The `PollResultsView.vue` is fully integrated with **Microsoft SignalR WebSockets**. 
 
-## Real-time Updates (HTTP Polling vs SignalR)
+Instead of traditional HTTP Short Polling, the frontend maintains a persistent WebSocket connection to the backend (`/hubs/polls`). 
+- **Join Room:** It invokes the `WatchPoll(code)` method upon connection.
+- **Listen:** It listens for the `ResultsUpdated` event broadcasted by RabbitMQ.
+- **React:** Upon receiving the event, it instantly triggers a silent refresh to update the Vue reactive state without user interruption.
 
-Currently, the frontend achieves "real-time" results in the `PollResultsView.vue` component by using **HTTP Short Polling**. It automatically fires a silent `GET` request every 5 seconds via `setInterval` to fetch the latest vote counts without disrupting the user interface.
+---
 
-While the backend is fully equipped with **SignalR** and RabbitMQ (broadcasting `ResultsUpdated` events to `http://localhost:8080/hubs/polls`), the frontend currently relies on HTTP polling for simplicity. 
+<div align="center">
 
-**Future SignalR Integration Roadmap:**
-To upgrade from HTTP polling to true WebSockets (SignalR):
-1. Install `@microsoft/signalr` (`npm install @microsoft/signalr`).
-2. Initialize a `HubConnectionBuilder` in `PollResultsView.vue`.
-3. Invoke the server method `WatchPoll(code)` upon mount.
-4. Listen to `connection.on("ResultsUpdated", (data) => { ... })` to surgically update the Vue reactive state (`pollData.options`) without triggering a full HTTP request.
+**Developed for AMD201**
 
-## Current Boundaries
+[![GitHub](https://img.shields.io/badge/GitHub-Neuyngudcal-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Neuyngudcal/poll-survey-frontend)
 
-- **State Persistence:** The creator token acts as capability-based authorization. Because there is no user login system (Identity), `localStorage` is the absolute sole source of truth for poll ownership. If a user clears their browser cache or switches to a different browser/mobile device, the poll becomes "orphaned" and they can no longer access the `EditPollView.vue` for that poll.
-- **Vote Validation:** The frontend assumes the backend will handle duplicate voting prevention gracefully. The frontend UI does not track "has voted" state locally beyond current session variables; it defers to the API Gateway to return appropriate HTTP status codes (e.g., `409 Conflict` for duplicate votes), which the Axios interceptor catches to display a UI warning via `vue-sonner`.
-- **Environment Management:** The `API_BASE_URL` is hardcoded in the `api.js` file for coursework simplicity rather than using Vite's `.env.production` / `.env.development` modes. Production systems should inject this via `.env` variables.
+</div>
