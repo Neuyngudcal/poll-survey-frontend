@@ -1,15 +1,16 @@
 <div align="center">
 
-# 📊 Poll & Survey Builder 
+# 📊 Poll & Survey Builder
 
-### A Modern Real-Time Voting & Polling Single Page Application
+### A Modern Microservices-Based Real-Time Voting Platform
 
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.0-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)](https://vuejs.org/)
-[![Vite](https://img.shields.io/badge/Vite-8.1-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Docker](https://img.shields.io/badge/Docker-Alpine_Nginx-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![PostgreSQL](https://img.shields.io/badge/Neon_PostgreSQL-15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Message_Broker-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)](https://www.rabbitmq.com/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
-[API Integration](#-api-integration-mapping) • [Architecture](#️-architecture) • [Docker Setup](#-docker-deployment)
+[API Docs](#-api-documentation) • [Architecture](#️-architecture) • [Docker Deployment](#-docker-deployment)
 
 </div>
 
@@ -22,9 +23,9 @@
 - [🚀 Tech Stack](#-tech-stack)
 - [⚡ Quick Start](#-quick-start)
 - [🐳 Docker Deployment](#-docker-deployment)
-- [📡 API Integration Mapping](#-api-integration-mapping)
-- [🔐 State & Authorization](#-state--authorization)
-- [🌐 Real-time Updates](#-real-time-updates-signalr)
+- [📡 API Documentation](#-api-documentation)
+- [🔐 Authentication & Boundaries](#-authentication--boundaries)
+- [🌐 Real-Time SignalR](#-real-time-signalr)
 
 ---
 
@@ -35,11 +36,11 @@
 | Feature | Description |
 |---------|-------------|
 | ⚡ **Instant Setup** | Create polls instantly with zero registration |
-| 📊 **Real-Time Analytics** | Watch votes come in live via SignalR WebSockets |
-| 🛡️ **Admin Panel** | Manage, edit, and close polls using secure creator tokens |
-| 🔗 **Easy Sharing** | One-click copy for shareable voting links |
-| 🎨 **Modern UI/UX** | Smooth animations, toast notifications, and responsive design |
-| 🐳 **Containerized** | Production-ready multi-stage Docker setup with Nginx |
+| 📊 **Real-Time Analytics** | Watch votes come in live via SignalR & RabbitMQ |
+| 🛡️ **Capability Security** | Manage, edit, and close polls using secure creator tokens |
+| 🔗 **Microservices** | Fully decoupled backend with Ocelot API Gateway |
+| 💾 **Neon Postgres** | Cloud-native serverless PostgreSQL isolation |
+| 🐳 **Containerized** | Full Docker Compose support for easy deployment |
 
 </div>
 
@@ -47,40 +48,78 @@
 
 ## 🏗️ Architecture
 
-### Frontend Component Breakdown
+### Microservices Design
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
-│                    🌐 Vue 3 + Vite SPA                       │
-└───────────────┬─────────────────────────┬───────────────────┘
-                │                         │
-        ┌───────▼────────┐        ┌───────▼────────┐
-        │  🏠 Views      │        │  🧩 Components │
-        │  (Page Level)  │        │  (Reusables)   │
-        └───────┬────────┘        └───────┬────────┘
-                │                         │
-      ┌─────────┼─────────┐     ┌─────────┼──────────┐
-      │ HomeView          │     │ BaseInput        │
-      │ CreatePollView    │     │ BaseButton       │
-      │ EditPollView      │     │ PollVoteHero     │
-      │ PollVote          │     │ EditPollHero     │
-      │ PollResultsView   │     │ ...              │
-      └───────────────────┘     └──────────────────┘
+│                    💻 Vue 3 Frontend                         │
+└────────────────────────────┬────────────────────────────────┘
+                             │ HTTP / WebSockets
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    🌐 API Gateway (Ocelot)                   │
+│                         Port 8080                            │
+└───────────────┬─────────────────────────┬───────────┬───────┘
+                │                         │           │
+        ┌───────▼────────┐        ┌───────▼────────┐  │
+        │  📊 Poll        │        │  🗳️ Voting      │  │
+        │  Service        │        │   Service      │  │
+        │  Port 8081      │        │   Port 8082    │  │
+        └───────┬─────────┘        └──────┬─────────┘  │
+                │                         │            │
+        ┌───────▼─────────┐      ┌────────▼────────┐   │
+        │  💾 Poll DB     │      │  💾 Vote DB     │   │
+        │  (Neon Cloud)   │      │  (Neon Cloud)   │   │
+        └─────────────────┘      └────────┬────────┘   │
+                                          │            │
+                                 ┌────────▼────────┐   │
+                                 │  🐇 RabbitMQ    │◄──┘
+                                 │  Port 5672      │
+                                 └────────┬────────┘
+                                          │
+                                 ┌────────▼────────┐
+                                 │ ⚡ Realtime Hub  │
+                                 │  Port 8083      │
+                                 └─────────────────┘
 ```
 
-**Component Responsibilities:**
-- **`HomeView`**: Landing page, feature highlights, and navigation.
-- **`CreatePollView`**: Form to submit new poll questions and options.
-- **`EditPollView`**: Admin panel for poll creators (Edit/Close/Delete).
-- **`PollVote`**: Voting interface for standard users.
-- **`PollResultsView`**: Result visualization updating in real-time.
-- **`helps/api.js`**: Centralized Axios instance & SignalR config.
+### Service Breakdown
+
+**🌐 API Gateway** (Port 8080)
+- Built with Ocelot
+- Single entry point for all REST and WebSocket routes
+
+**📊 Poll Service** (Port 8081)
+- Poll CRUD operations and creator authorization
+- Uses isolated Neon PostgreSQL project (`polls`, `poll_options` tables)
+
+**🗳️ Voting Service** (Port 8082)
+- Vote submission and result aggregation
+- Uses isolated Neon PostgreSQL project (`votes` table)
+- Calls Poll Service to validate polls and publishes events to RabbitMQ
+
+**⚡ Realtime Service** (Port 8083)
+- Subscribes to RabbitMQ vote events
+- Broadcasts real-time SignalR updates to connected frontends
 
 ---
 
 ## 🚀 Tech Stack
 
-### Frontend & Build Tools
+### Backend
+
+<div align="center">
+
+| Technology | Purpose |
+|------------|---------|
+| ![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet&logoColor=white) | Web API microservices framework |
+| ![Entity Framework](https://img.shields.io/badge/Entity_Framework-Core-512BD4?style=flat-square&logo=dotnet&logoColor=white) | ORM for database access |
+| ![Ocelot](https://img.shields.io/badge/Ocelot-Latest-FF6B6B?style=flat-square) | API Gateway routing |
+| ![SignalR](https://img.shields.io/badge/SignalR-WebSockets-008AD7?style=flat-square) | Real-time WebSocket broadcasting |
+
+</div>
+
+### Frontend
 
 <div align="center">
 
@@ -88,9 +127,7 @@
 |------------|---------|
 | ![Vue.js](https://img.shields.io/badge/Vue.js-3.0-4FC08D?style=flat-square&logo=vue.js&logoColor=white) | Frontend Reactive Framework |
 | ![Vite](https://img.shields.io/badge/Vite-8.1-646CFF?style=flat-square&logo=vite&logoColor=white) | Next-Generation Build Tool |
-| ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) | Utility-first CSS framework |
-| ![Axios](https://img.shields.io/badge/Axios-HTTP-5A29E4?style=flat-square) | HTTP Client for API communication |
-| ![SignalR](https://img.shields.io/badge/SignalR-WebSockets-008AD7?style=flat-square) | Real-time WebSocket integration |
+| ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white) | Utility-first CSS styling |
 
 </div>
 
@@ -100,8 +137,9 @@
 
 | Technology | Purpose |
 |------------|---------|
-| ![Docker](https://img.shields.io/badge/Docker-Latest-2496ED?style=flat-square&logo=docker&logoColor=white) | Containerization |
-| ![Nginx](https://img.shields.io/badge/Nginx-Alpine-009639?style=flat-square&logo=nginx&logoColor=white) | Production Static File Server |
+| ![PostgreSQL](https://img.shields.io/badge/Neon_PostgreSQL-Serverless-4169E1?style=flat-square&logo=postgresql&logoColor=white) | Primary cloud database |
+| ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Message_Queue-FF6600?style=flat-square&logo=rabbitmq&logoColor=white) | Asynchronous event messaging |
+| ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white) | Local orchestration & containerization |
 
 </div>
 
@@ -109,115 +147,152 @@
 
 ## ⚡ Quick Start
 
-### Prerequisites
-- Node.js 18 or newer
-- npm (Node Package Manager)
+### Backend Prerequisites
+- Docker Desktop with Docker Compose
+- Two configured Neon PostgreSQL projects
+- Ports 5672, 15672 and 8080–8083 available
 
-### Local Development
+### 1. Configure Neon Databases
+1. Create a Neon project for **PollService**.
+2. Create a second Neon project for **VotingService**.
+3. Copy the environment template:
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+4. Replace values in `.env` with your direct Neon connection strings:
+   ```env
+   POLL_DB_CONNECTION_STRING=Host=...;Database=neondb;Username=...;Password=...;SSL Mode=Require;
+   VOTE_DB_CONNECTION_STRING=Host=...;Database=neondb;Username=...;Password=...;SSL Mode=Require;
+   ```
+   *(Note: The services will automatically create their schemas `EnsureCreated` during startup).*
 
-```bash
-# Clone the repository
-git clone https://github.com/Neuyngudcal/poll-survey-frontend.git
-cd poll-survey-frontend
+### 2. Run the System
 
-# Install dependencies
-npm install
-
-# Start the Vite development server
-npm run dev
-
-# Access the application
-# Frontend: http://localhost:5173
+From the backend solution directory:
+```powershell
+docker compose up -d --build
+docker compose ps
+docker compose logs poll-service voting-service --tail 100
 ```
 
-### Environment Configuration
-The backend API Gateway endpoints are currently configured in `src/helps/api.js`:
-```javascript
-export const API_BASE_URL = 'https://poorpollsurvey.up.railway.app/polls';
-export const HUB_BASE_URL = 'https://poorpollsurvey.up.railway.app/hubs/polls';
+To stop the backend:
+```powershell
+docker compose down
 ```
 
 ---
 
 ## 🐳 Docker Deployment
 
-### Multi-Stage Build
+The local PostgreSQL Docker container has been removed. Docker now strictly runs the backend `.NET` services and `RabbitMQ`, while both PostgreSQL databases are hosted entirely in the Neon Cloud.
 
-The application uses an optimized two-stage Docker build to ensure the production image is extremely lightweight.
+The Frontend utilizes a multi-stage `Node.js` + `Nginx Alpine` Dockerfile for production-ready static serving on port 80.
 
-```dockerfile
-# Stage 1: Build (Node.js)
-FROM node:20-alpine AS build-stage
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
+---
 
-# Stage 2: Production (Nginx)
-FROM nginx:stable-alpine AS production-stage
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+## 📡 API Documentation
+
+Use `PollSurvey.http` in Visual Studio or Postman to test the gateway flow.
+- PollService OpenAPI: `http://localhost:8081/openapi/v1.json`
+- VotingService OpenAPI: `http://localhost:8082/openapi/v1.json`
+
+### Poll Management (Poll Service)
+
+#### Create a Poll (Public)
+```http
+POST http://localhost:8080/polls
+Content-Type: application/json
+
+{
+  "question": "Which option do you prefer?",
+  "options": ["Option A", "Option B"]
+}
+
+// 201 Created
+{
+  "code": "7fGh2Ab",
+  "creatorToken": "private-token-returned-once",
+  "sharePath": "/poll/7fGh2Ab",
+  "createdAt": "2026-07-28T08:00:00+00:00"
+}
 ```
 
-### Run with Docker
-
-```bash
-# Build the image
-docker build -t pollco-frontend .
-
-# Run the container on port 8080
-docker run -d -p 8080:80 pollco-frontend
+#### Read a Poll (Public)
+```http
+GET http://localhost:8080/polls/7fGh2Ab
 ```
 
-*(Note: The included `nginx.conf` ensures Vue Router's History mode functions correctly by falling back to `index.html` on deep links).*
+#### Update a Poll (Creator Only)
+```http
+PUT http://localhost:8080/polls/7fGh2Ab
+Content-Type: application/json
+
+{
+  "creatorToken": "private-token-returned-by-create",
+  "question": "Updated question?",
+  "options": ["Updated Option A", "Updated Option B"]
+}
+// 200 OK | 403 Forbidden | 409 Conflict
+```
+
+#### Delete a Poll (Creator Only)
+```http
+DELETE http://localhost:8080/polls/7fGh2Ab
+X-Creator-Token: private-token-returned-by-create
+
+// 204 No Content
+```
+*(Implemented as a soft delete to prevent short-code reuse).*
+
+#### Close a Poll (Creator Only)
+```http
+PATCH http://localhost:8080/polls/7fGh2Ab/close
+Content-Type: application/json
+
+{
+  "creatorToken": "private-token-returned-by-create"
+}
+// 204 No Content
+```
+
+### Voting & Results (Voting Service)
+
+#### Submit a Vote
+```http
+POST http://localhost:8080/polls/7fGh2Ab/vote
+Content-Type: application/json
+
+{
+  "optionId": "69fd6ef0-f5c9-4831-94fb-d4307fb6289c"
+}
+```
+
+#### Get Results
+```http
+GET http://localhost:8080/polls/7fGh2Ab/results
+```
 
 ---
 
-## 📡 API Integration Mapping
+## 🔐 Authentication & Boundaries
 
-The frontend communicates with the .NET Backend API Gateway via the centralized `apiClient`. 
-
-| Operation | Target API Route | HTTP Method | Frontend Action |
-|-----------|------------------|-------------|-----------------|
-| **Create Poll** | `/` | `POST` | Stores returned `creatorToken` in `localStorage` |
-| **Get Poll** | `/{code}` | `GET` | Renders the Voting interface (`PollVote.vue`) |
-| **Update Poll** | `/{code}` | `PUT` | Sends updated question/options + `creatorToken` |
-| **Delete Poll** | `/{code}` | `DELETE` | Passes token in `X-Creator-Token` header |
-| **Close Poll** | `/{code}/close` | `PATCH` | Locks poll from further voting |
-| **Submit Vote** | `/{code}/vote` | `POST` | Submits selected `optionId` |
-| **Get Results** | `/{code}/results` | `GET` | Fetches initial vote aggregation |
+- **Capability-Based Tokens:** The `creatorToken` is capability-based authorization, not account authentication. The frontend saves this strictly in `localStorage`. Anyone who obtains the token can manage that poll.
+- **Vote Validation:** The frontend must use `credentials: "include"` for vote requests so the `HttpOnly` voter cookie is retained. A unique database constraint on `pollCode + voterTokenHash` enforces one vote per browser.
+- **Service Dependency:** `VotingService` calls `PollService` to validate votes, meaning it is not fully independent during a `PollService` outage.
+- **Production Secrets:** Ensure `EnsureCreated` is replaced with EF Core migrations in production, and use Deployment Secrets instead of `.env` files.
 
 ---
 
-## 🔐 State & Authorization
+## 🌐 Real-Time SignalR
 
-Because there is currently no global user login system, authorization is handled via **Capability-Based Tokens**.
+The Frontend fully integrates with the Backend's Realtime Service.
 
-1. **Token Generation:** When a poll is created, the backend returns a `creatorToken`.
-2. **Local Storage:** The frontend saves this token as `poll_token_{code}`.
-3. **Admin Access:** The `EditPollView.vue` checks `localStorage` for this token to prove ownership.
-4. **Warning:** If a user clears their browser cache or switches devices, the poll becomes "orphaned" and they lose admin access.
+**Gateway Hub URL:**
+```text
+http://localhost:8080/hubs/polls
+```
 
----
+- **Client Method Invocation:** `WatchPoll(code)`
+- **Server Event Listener:** `ResultsUpdated`
 
-## 🌐 Real-time Updates (SignalR)
-
-The `PollResultsView.vue` is fully integrated with **Microsoft SignalR WebSockets**. 
-
-Instead of traditional HTTP Short Polling, the frontend maintains a persistent WebSocket connection to the backend (`/hubs/polls`). 
-- **Join Room:** It invokes the `WatchPoll(code)` method upon connection.
-- **Listen:** It listens for the `ResultsUpdated` event broadcasted by RabbitMQ.
-- **React:** Upon receiving the event, it instantly triggers a silent refresh to update the Vue reactive state without user interruption.
-
----
-
-<div align="center">
-
-**Developed for AMD201**
-
-[![GitHub](https://img.shields.io/badge/GitHub-Neuyngudcal-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Neuyngudcal/poll-survey-frontend)
-
-</div>
+When `VotingService` registers a new vote, it publishes to `RabbitMQ`. The `RealtimeService` consumes this message and broadcasts `ResultsUpdated` via SignalR to all clients currently watching that poll, allowing the Vue frontend to update instantly without HTTP polling.
